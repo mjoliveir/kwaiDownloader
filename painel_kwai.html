@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kwai Downloader</title>
+<style>
+:root{--bg:#14161a;--card:#1d2026;--bd:#2c313a;--tx:#e8eaed;--mut:#8b93a1;--ac:#ff6a1a;--ok:#3ecf72;--er:#ff5c5c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px}h1{font-size:20px;margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:16px}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:4px}
+input[type=text],input[type=number],select{width:100%;padding:9px 10px;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;font:inherit}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px}
+.opt{display:flex;gap:16px;align-items:center;padding-top:6px}.opt label{color:var(--tx);margin:0;font-size:15px;display:flex;gap:6px;align-items:center}
+details{margin-top:12px}summary{cursor:pointer;color:var(--mut);font-size:13px}
+.btns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+button{padding:10px 18px;border:0;border-radius:6px;font:inherit;font-weight:600;cursor:pointer;background:var(--bd);color:var(--tx)}
+button.pri{background:var(--ac);color:#fff}button:disabled{opacity:.4;cursor:not-allowed}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+#ptxt{font-size:14px}#pct{font-size:22px;font-weight:700}
+.bar{height:14px;background:var(--bd);border-radius:7px;overflow:hidden;margin:10px 0;position:relative}
+.bar i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
+.bar.ind i{width:35%;position:absolute;animation:slide 1.2s ease-in-out infinite}
+@keyframes slide{0%{left:-35%}100%{left:100%}}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--mut)}.stats b{color:var(--tx)}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:12px;max-height:260px;overflow:auto}
+.it{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:8px;font-size:12px;overflow:hidden}
+.it span{display:block;color:var(--mut);margin-top:2px}.it.ok{border-color:var(--ok)}.it.falhou{border-color:var(--er)}.it.baixando{border-color:var(--ac)}.it.pendente,.it.pulado{opacity:.6}
+#log{background:#0d0f12;border-radius:6px;padding:10px;height:280px;overflow:auto;font:12px/1.5 ui-monospace,Consolas,monospace;color:#b8c0cc}
+#log div{white-space:pre-wrap;word-break:break-all}#log .er{color:var(--er)}#log .ok{color:var(--ok)}#log .wa{color:var(--ac)}
+#ativos{margin-bottom:8px}.vb{display:grid;grid-template-columns:96px 1fr minmax(150px,auto);gap:10px;align-items:center;padding:4px 0;font:12px ui-monospace,Consolas,monospace}
+.vb .vn{color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vb .vt{color:var(--mut);text-align:right;white-space:nowrap}
+.vbar{height:10px;background:var(--bd);border-radius:5px;overflow:hidden;position:relative}.vbar i{display:block;height:100%;width:0;background:var(--ac);transition:width .3s}
+.vbar.ind i{width:30%;position:absolute;animation:slide 1.2s ease-in-out infinite}
+.lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.lh button{padding:4px 10px;font-size:12px}
+#msg{color:var(--er);font-size:13px;margin-top:8px;min-height:1em}
+dialog{background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:12px;padding:24px;max-width:440px;width:92%}
+dialog::backdrop{background:rgba(0,0,0,.65)}dialog h2{margin:0 0 12px;font-size:18px}
+.big{font-size:34px;font-weight:700;color:var(--ac);line-height:1}.sm{font-size:13px;color:var(--mut);margin:10px 0 0}
+.res{margin:14px 0 0;padding:0;list-style:none;font-size:14px}.res li{padding:4px 0;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;gap:12px}
+.res li b{text-align:right;word-break:break-all}
+</style></head><body><main>
+<h1>Kwai Downloader</h1>
+<div class="card">
+  <label for="url">URL do perfil</label>
+  <input type="text" id="url" placeholder="https://www.kwai.com/@usuario" autofocus>
+  <div class="row">
+    <div><label>Baixar</label><div class="opt">
+      <label><input type="radio" name="modo" value="video" checked> Vídeo</label>
+      <label><input type="radio" name="modo" value="audio"> Só áudio</label></div></div>
+    <div><label for="formato">Formato do áudio</label>
+      <select id="formato" disabled><option>mp3</option><option>m4a</option><option>wav</option><option>opus</option></select></div>
+    <div><label for="limite">Máx. de vídeos (0 = todos)</label><input type="number" id="limite" value="0" min="0"></div>
+    <div style="grid-column:1/-1"><label for="pasta">Pasta de destino</label>
+      <div style="display:flex;gap:6px"><input type="text" id="pasta" readonly placeholder="Nenhuma pasta escolhida" style="cursor:pointer">
+      <button id="pick" type="button" style="white-space:nowrap">Escolher…</button></div></div>
+  </div>
+  <details><summary>Avançado</summary>
+    <div class="row">
+      <div><label for="pausa">Pausa entre rolagens (ms)</label><input type="number" id="pausa" value="1500" min="300"></div>
+      <div><label for="par">Downloads simultâneos (1-8)</label><input type="number" id="par" value="3" min="1" max="8"></div>
+      <div><label for="scrolls">Máx. de rolagens</label><input type="number" id="scrolls" value="200" min="1"></div>
+      <div><label>Navegador</label><div class="opt"><label><input type="checkbox" id="headful"> Mostrar navegador (login/captcha)</label></div></div>
+    </div></details>
+  <div class="btns">
+    <button class="pri" id="go">Analisar e baixar</button><button id="stop" disabled>Parar</button><button id="open">Abrir pasta</button>
+  </div><div id="msg"></div>
+</div>
+<div class="card">
+  <div class="head"><div id="ptxt">Aguardando início</div><div id="pct">0%</div></div>
+  <div class="bar" id="bar"><i id="pb"></i></div>
+  <div class="stats"><span>Status: <b id="st">ocioso</b></span><span>Baixados: <b id="ok">0</b></span>
+    <span>Pulados: <b id="pu">0</b></span><span>Falhas: <b id="fa">0</b></span><span>Total: <b id="to">0</b></span></div>
+  <div id="grid"></div>
+</div>
+<div class="card"><div class="lh"><label style="margin:0">Log (também salvo em logs/kwai_dl.log)</label>
+  <span><button id="cp">Copiar</button> <button id="clr">Limpar tela</button></span></div><div id="ativos"></div><div id="log"></div></div>
+</main>
+
+<dialog id="dlg">
+  <h2>Confirmar download</h2>
+  <div class="big" id="d-total">0</div>
+  <div>vídeos encontrados neste perfil</div>
+  <ul class="res">
+    <li>Já estão na pasta (serão pulados)<b id="d-ex">0</b></li>
+    <li>Serão baixados<b id="d-nv">0</b></li>
+    <li>Modo<b id="d-modo"></b></li>
+    <li>Pasta<b id="d-pasta"></b></li>
+  </ul>
+  <p class="sm">Estimativa com base no que o Kwai carregou ao rolar o perfil; o número real pode ser maior.</p>
+  <div class="btns" style="justify-content:flex-end">
+    <button id="d-no">Cancelar</button><button class="pri" id="d-yes">Baixar</button>
+  </div>
+</dialog>
+
+<script>
+const $=i=>document.getElementById(i);let desde=0;
+const post=(p,b)=>fetch(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})}).then(r=>r.json());
+const modo=()=>document.querySelector('input[name=modo]:checked').value;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.querySelectorAll('input[name=modo]').forEach(r=>r.onchange=()=>$('formato').disabled=modo()!=='audio');
+try{$('pasta').value=localStorage.getItem('kwai_pasta')||''}catch(_){}
+$('pasta').title=$('pasta').value;
+const escolher=async()=>{$('pick').disabled=true;$('msg').textContent='';
+  const r=await post('/api/escolher-pasta',{inicial:$('pasta').value});$('pick').disabled=false;
+  if(r.erro)$('msg').textContent=r.erro;
+  else if(r.pasta){$('pasta').value=$('pasta').title=r.pasta;try{localStorage.setItem('kwai_pasta',r.pasta)}catch(_){}}};
+$('pick').onclick=escolher;$('pasta').onclick=escolher;
+$('go').onclick=async()=>{$('msg').textContent='';
+  if(!$('pasta').value){$('msg').textContent='Escolha a pasta de destino.';return;}
+  desde=0;$('log').innerHTML='';
+  const r=await post('/api/iniciar',{url:$('url').value,pasta:$('pasta').value,modo:modo(),formato:$('formato').value,
+    limite:$('limite').value,paralelo:$('par').value,pausa_ms:$('pausa').value,max_scrolls:$('scrolls').value,headful:$('headful').checked});
+  if(r.erro)$('msg').textContent=r.erro;};
+$('stop').onclick=()=>post('/api/parar');
+$('open').onclick=async()=>{const r=await post('/api/abrir-pasta');if(r.erro)$('msg').textContent=r.erro;};
+$('cp').onclick=()=>navigator.clipboard.writeText($('log').innerText);
+$('clr').onclick=()=>$('log').innerHTML='';
+const resp=async sim=>{$('dlg').close();await post('/api/confirmar',{sim});};
+$('d-yes').onclick=()=>resp(true);$('d-no').onclick=()=>resp(false);
+$('dlg').addEventListener('cancel',e=>{e.preventDefault();resp(false);});
+
+function abrirModal(r){
+  $('d-total').textContent=r.total;$('d-ex').textContent=r.existentes;$('d-nv').textContent=r.novos;
+  $('d-modo').textContent=r.audio?'Só áudio ('+r.formato+')':'Vídeo';$('d-pasta').textContent=r.pasta;
+  $('d-yes').disabled=r.novos===0;$('d-yes').textContent=r.novos?'Baixar '+r.novos+(r.novos==1?' vídeo':' vídeos'):'Nada novo';
+  if(!$('dlg').open)$('dlg').showModal();}
+const nos={};
+const mb=x=>(x/1048576).toFixed(1);
+function renderAtivos(itens){
+  const box=$('ativos'),ativos=itens.filter(i=>i.status==='baixando'),ids=new Set(ativos.map(i=>i.id));
+  for(const id in nos)if(!ids.has(id)){nos[id].remove();delete nos[id];}
+  for(const i of ativos){
+    let n=nos[i.id];
+    if(!n){n=document.createElement('div');n.className='vb';
+      n.innerHTML='<span class="vn"></span><div class="vbar"><i></i></div><span class="vt"></span>';
+      n.querySelector('.vn').textContent=i.id;box.appendChild(n);nos[i.id]=n;}
+    const bar=n.querySelector('.vbar'),fill=n.querySelector('i'),t=n.querySelector('.vt');
+    if(i.fase==='baixando'&&i.total){const p=Math.min(100,100*i.atual/i.total);bar.classList.remove('ind');
+      fill.style.width=p.toFixed(1)+'%';t.textContent=p.toFixed(1)+'% · '+mb(i.atual)+'/'+mb(i.total)+' MB · '+mb(i.vel||0)+' MB/s';}
+    else{bar.classList.add('ind');fill.style.width='';
+      t.textContent=i.fase==='audio'?'extraindo áudio...':i.fase==='baixando'?'baixando... '+mb(i.atual||0)+' MB':'abrindo página...';}
+  }}
+function addLog(l){const d=document.createElement('div');d.textContent=l;
+  if(/ERRO|FALHOU|falhou|cancelad|Interrompido/.test(l))d.className='er';
+  else if(/: ok \(|Conclu|Confirmado/.test(l))d.className='ok';
+  else if(/Aguardando|An[aá]lise/.test(l))d.className='wa';
+  $('log').appendChild(d);}
+
+async function poll(){
+  try{const e=await (await fetch('/api/estado?desde='+desde)).json();
+    const ativo=['analisando','aguardando','baixando'].includes(e.status);
+    window._ativo=ativo;$('go').disabled=ativo;$('stop').disabled=!ativo;
+    $('st').textContent=e.status;$('ok').textContent=e.ok;$('pu').textContent=e.puladas;$('fa').textContent=e.falhas;$('to').textContent=e.total;
+    const feitos=e.ok+e.puladas+e.falhas,pct=e.total?Math.round(100*feitos/e.total):0;
+    const bar=$('bar');bar.classList.toggle('ind',e.status==='analisando'||e.status==='aguardando');
+    if(e.status==='analisando'){$('ptxt').textContent='Analisando perfil... '+e.encontrados+' vídeos encontrados até agora';$('pct').textContent='';}
+    else if(e.status==='aguardando'){$('ptxt').textContent='Aguardando sua confirmação ('+(e.resumo?e.resumo.total:e.encontrados)+' vídeos encontrados)';$('pct').textContent='';}
+    else{const emAnd=e.itens.filter(i=>i.status==='baixando').length;
+      $('pb').style.width=pct+'%';$('pct').textContent=e.total?pct+'%':'';
+      $('ptxt').textContent=e.status==='baixando'?('Baixando: '+feitos+' de '+e.total+' concluídos · '+emAnd+' em andamento'):
+        ({ocioso:'Aguardando início',concluido:'Concluído: '+feitos+' de '+e.total,parado:'Parado em '+feitos+' de '+e.total,erro:'Terminou com erro (veja o log)'}[e.status]||e.status);}
+    if(e.status==='aguardando'&&e.resumo)abrirModal(e.resumo);
+    else if(e.status!=='aguardando'&&$('dlg').open)$('dlg').close();
+    if(e.logs.length){const l=$('log'),fim=l.scrollTop+l.clientHeight>=l.scrollHeight-20;
+      e.logs.forEach(addLog);if(fim)l.scrollTop=l.scrollHeight;}
+    desde=e.n_logs;renderAtivos(e.itens);
+    $('grid').innerHTML=e.itens.map(i=>`<div class="it ${i.status}">${esc(i.id)}<span>${esc(i.status)}${i.metodo?' · '+esc(i.metodo):''}</span></div>`).join('');
+  }catch(_){}
+  setTimeout(poll,window._ativo?500:1000);}
+poll();
+</script></body></html>
