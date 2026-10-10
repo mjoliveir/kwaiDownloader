@@ -1,2 +1,5 @@
-app/logs/
-app/__pycache__/
+# Gerados em execução (este arquivo vale só para a pasta app/)
+__pycache__/
+*.py[cod]
+logs/
+downloads/
